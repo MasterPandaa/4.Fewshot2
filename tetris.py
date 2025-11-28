@@ -1,12 +1,13 @@
-import pygame
 import random
 import sys
 from typing import Dict, List, Tuple
 
+import pygame
+
 # Game configuration
 s_width = 600
 s_height = 700
-play_width = 300   # 10 blocks wide
+play_width = 300  # 10 blocks wide
 play_height = 600  # 20 blocks tall
 block_size = 30
 
@@ -46,37 +47,37 @@ O_SHAPE = [
 # T shape (purple/magenta)
 T_SHAPE = [
     [(-1, 0), (0, 0), (1, 0), (0, -1)],  # Up
-    [(0, -1), (0, 0), (0, 1), (1, 0)],   # Right
-    [(-1, 0), (0, 0), (1, 0), (0, 1)],   # Down
+    [(0, -1), (0, 0), (0, 1), (1, 0)],  # Right
+    [(-1, 0), (0, 0), (1, 0), (0, 1)],  # Down
     [(0, -1), (0, 0), (0, 1), (-1, 0)],  # Left
 ]
 
 # S shape (green)
 S_SHAPE = [
     [(-1, 0), (0, 0), (0, -1), (1, -1)],  # Horizontal
-    [(0, -1), (0, 0), (1, 0), (1, 1)],    # Vertical
+    [(0, -1), (0, 0), (1, 0), (1, 1)],  # Vertical
 ]
 
 # Z shape (red)
 Z_SHAPE = [
     [(-1, -1), (0, -1), (0, 0), (1, 0)],  # Horizontal
-    [(1, -1), (1, 0), (0, 0), (0, 1)],    # Vertical
+    [(1, -1), (1, 0), (0, 0), (0, 1)],  # Vertical
 ]
 
 # J shape (blue)
 J_SHAPE = [
-    [(-1, -1), (-1, 0), (0, 0), (1, 0)],   # Up
-    [(0, -1), (1, -1), (0, 0), (0, 1)],    # Right
-    [(-1, 0), (0, 0), (1, 0), (1, 1)],     # Down
-    [(0, -1), (0, 0), (-1, 1), (0, 1)],    # Left
+    [(-1, -1), (-1, 0), (0, 0), (1, 0)],  # Up
+    [(0, -1), (1, -1), (0, 0), (0, 1)],  # Right
+    [(-1, 0), (0, 0), (1, 0), (1, 1)],  # Down
+    [(0, -1), (0, 0), (-1, 1), (0, 1)],  # Left
 ]
 
 # L shape (orange)
 L_SHAPE = [
-    [(1, -1), (-1, 0), (0, 0), (1, 0)],    # Up
-    [(0, -1), (0, 0), (0, 1), (1, 1)],     # Right
-    [(-1, 0), (0, 0), (1, 0), (-1, 1)],    # Down
-    [(-1, -1), (0, -1), (0, 0), (0, 1)],   # Left
+    [(1, -1), (-1, 0), (0, 0), (1, 0)],  # Up
+    [(0, -1), (0, 0), (0, 1), (1, 1)],  # Right
+    [(-1, 0), (0, 0), (1, 0), (-1, 1)],  # Down
+    [(-1, -1), (0, -1), (0, 0), (0, 1)],  # Left
 ]
 
 SHAPES = [I_SHAPE, O_SHAPE, T_SHAPE, S_SHAPE, Z_SHAPE, J_SHAPE, L_SHAPE]
@@ -84,7 +85,13 @@ SHAPE_COLORS = [CYAN, YELLOW, MAGENTA, GREEN, RED, BLUE, ORANGE]
 
 
 class Piece:
-    def __init__(self, x: int, y: int, shape: List[List[Tuple[int, int]]], color: Tuple[int, int, int]):
+    def __init__(
+        self,
+        x: int,
+        y: int,
+        shape: List[List[Tuple[int, int]]],
+        color: Tuple[int, int, int],
+    ):
         # Position is pivot position in grid coordinates
         self.x = x
         self.y = y
@@ -97,7 +104,11 @@ class Piece:
         rotation = self.shape[self.rotation % len(self.shape)]
         return [(self.x + dx, self.y + dy) for (dx, dy) in rotation]
 
-    def rotate(self, grid: List[List[Tuple[int, int, int]]], locked: Dict[Tuple[int, int], Tuple[int, int, int]]):
+    def rotate(
+        self,
+        grid: List[List[Tuple[int, int, int]]],
+        locked: Dict[Tuple[int, int], Tuple[int, int, int]],
+    ):
         # Try rotate with simple wall kicks: attempt center, then offsets
         old_rotation = self.rotation
         self.rotation = (self.rotation + 1) % len(self.shape)
@@ -113,7 +124,9 @@ class Piece:
             self.rotation = old_rotation
 
 
-def create_grid(locked_positions: Dict[Tuple[int, int], Tuple[int, int, int]] = {}) -> List[List[Tuple[int, int, int]]]:
+def create_grid(
+    locked_positions: Dict[Tuple[int, int], Tuple[int, int, int]] = {},
+) -> List[List[Tuple[int, int, int]]]:
     grid = [[BLACK for _ in range(10)] for _ in range(20)]
     for (x, y), color in locked_positions.items():
         if 0 <= y < 20 and 0 <= x < 10:
@@ -126,7 +139,9 @@ def convert_shape_format(piece: Piece) -> List[Tuple[int, int]]:
 
 
 def valid_space(piece: Piece, grid: List[List[Tuple[int, int, int]]]) -> bool:
-    accepted_positions = [(j, i) for i in range(20) for j in range(10) if grid[i][j] == BLACK]
+    accepted_positions = [
+        (j, i) for i in range(20) for j in range(10) if grid[i][j] == BLACK
+    ]
     formatted = convert_shape_format(piece)
     for pos in formatted:
         x, y = pos
@@ -146,7 +161,7 @@ def valid_space(piece: Piece, grid: List[List[Tuple[int, int, int]]]) -> bool:
 
 
 def check_lost(locked_positions: Dict[Tuple[int, int], Tuple[int, int, int]]) -> bool:
-    for (x, y) in locked_positions.keys():
+    for x, y in locked_positions.keys():
         if y < 1:
             return True
     return False
@@ -179,11 +194,17 @@ def draw_grid(surface, grid):
     sy = play_y
     for i in range(len(grid)):
         pygame.draw.line(
-            surface, GREY, (sx, sy + i * block_size), (sx + play_width, sy + i * block_size)
+            surface,
+            GREY,
+            (sx, sy + i * block_size),
+            (sx + play_width, sy + i * block_size),
         )
         for j in range(len(grid[i])):
             pygame.draw.line(
-                surface, GREY, (sx + j * block_size, sy), (sx + j * block_size, sy + play_height)
+                surface,
+                GREY,
+                (sx + j * block_size, sy),
+                (sx + j * block_size, sy + play_height),
             )
 
 
@@ -237,11 +258,15 @@ def draw_next_shape(piece: Piece, surface):
     preview_rect = pygame.Rect(sx, sy, width + 20, height + 20)
     pygame.draw.rect(surface, GREY, preview_rect, width=2)
 
-    for (dx, dy) in shape_cells:
+    for dx, dy in shape_cells:
         x = sx + 10 + (dx - min_x) * block_size
         y = sy + 10 + (dy - min_y) * block_size
-        pygame.draw.rect(surface, piece.color, (x, y, block_size, block_size), border_radius=5)
-        pygame.draw.rect(surface, BLACK, (x, y, block_size, block_size), 2, border_radius=5)
+        pygame.draw.rect(
+            surface, piece.color, (x, y, block_size, block_size), border_radius=5
+        )
+        pygame.draw.rect(
+            surface, BLACK, (x, y, block_size, block_size), 2, border_radius=5
+        )
 
 
 def draw_window(surface, grid, score=0, lines=0, level=1):
@@ -272,8 +297,12 @@ def draw_window(surface, grid, score=0, lines=0, level=1):
             if color != BLACK:
                 x = play_x + j * block_size
                 y = play_y + i * block_size
-                pygame.draw.rect(surface, color, (x, y, block_size, block_size), border_radius=5)
-                pygame.draw.rect(surface, BLACK, (x, y, block_size, block_size), 2, border_radius=5)
+                pygame.draw.rect(
+                    surface, color, (x, y, block_size, block_size), border_radius=5
+                )
+                pygame.draw.rect(
+                    surface, BLACK, (x, y, block_size, block_size), 2, border_radius=5
+                )
 
     draw_grid(surface, grid)
 
@@ -352,7 +381,7 @@ def main(surface):
                     run = False
 
         # Update grid with current piece
-        for (x, y) in convert_shape_format(current_piece):
+        for x, y in convert_shape_format(current_piece):
             if y >= 0:
                 grid[y][x] = current_piece.color
 
@@ -363,7 +392,7 @@ def main(surface):
         # Lock piece if landed
         if change_piece:
             change_piece = False
-            for (x, y) in convert_shape_format(current_piece):
+            for x, y in convert_shape_format(current_piece):
                 locked_positions[(x, y)] = current_piece.color
             current_piece = next_piece
             next_piece = get_shape()
